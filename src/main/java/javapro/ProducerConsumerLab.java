@@ -18,6 +18,7 @@ public class ProducerConsumerLab {
         }
 
         public synchronized void produce(int value) throws InterruptedException {
+            // Using while protects against spurious wakeups
             while (buffer.size() >= capacity) {
                 System.out.println("[Producer] Buffer FULL - waiting...");
                 wait();
@@ -40,49 +41,55 @@ public class ProducerConsumerLab {
     }
 
     /**
-     * TODO 1: Implement Producer class
-     * Create a class that implements Runnable and:
-     * 1. Has a private SharedBuffer field
-     * 2. Has a constructor that accepts SharedBuffer parameter
-     * 3. In run() method:
-     *    - Use try-catch for InterruptedException
-     *    - Loop 10 times (i from 0 to 9)
-     *    - Call buffer.produce(i) each iteration
-     *    - Print "[Producer] finished producing 10 items" when done
-     *    - In catch block, print "[Producer] was interrupted"
+     * Producer class generates 10 sequential numbers and adds them to the buffer.
      */
     static class Producer implements Runnable {
-        // TODO 1: Implement Producer class here
-        // Step 1: Add private SharedBuffer field
+        private final SharedBuffer buffer;
 
-        // Step 2: Add constructor
         public Producer(SharedBuffer buffer) {
-            // Initialize the buffer field
+            this.buffer = buffer;
         }
 
-        // Step 3: Implement run() method
         @Override
         public void run() {
-            // Add your implementation here
+            try {
+                for (int i = 0; i < 10; i++) {
+                    buffer.produce(i);
+                    // Slight delay to allow interleaving and buffer state changes
+                    Thread.sleep(50);
+                }
+                System.out.println("[Producer] finished producing 10 items");
+            } catch (InterruptedException e) {
+                System.out.println("[Producer] was interrupted");
+                // Professional touch: Restore the interrupt flag as seen in Lab 5
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
     /**
-     * TODO 2: Implement Consumer class
+     * Consumer class retrieves 10 numbers from the buffer.
      */
     static class Consumer implements Runnable {
-        // TODO 2: Implement Consumer class here
-        // Step 1: Add private SharedBuffer field
+        private final SharedBuffer buffer;
 
-        // Step 2: Add constructor
         public Consumer(SharedBuffer buffer) {
-            // Initialize the buffer field
+            this.buffer = buffer;
         }
 
-        // Step 3: Implement run() method
         @Override
         public void run() {
-            // Add your implementation here
+            try {
+                for (int i = 0; i < 10; i++) {
+                    buffer.consume();
+                    // Slight delay to simulate processing time
+                    Thread.sleep(100);
+                }
+                System.out.println("[Consumer] finished consuming 10 items");
+            } catch (InterruptedException e) {
+                System.out.println("[Consumer] was interrupted");
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
